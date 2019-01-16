@@ -199,12 +199,17 @@ function formatMillis(millis, type) {
 }
 
 function responseToRows(requestedFields, response, groupBy) {
-//  throw new Error(JSON.stringify(response));
+  const fields = requestedFields.asArray();
+  var groupByStartIndex = 0;
+  fields.forEach(function(field) {
+    if(field.getId().indexOf('interval_') === 0) {
+      groupByStartIndex = 1;
+    }
+  });
   
   return response.map(function(row) {
     var result = [];
-    var groupByIndex = 1;
-    requestedFields.asArray().forEach(function (field) {
+    fields.forEach(function (field) {
       const id = field.getId();
       if(id === 'dimension') {
         return result.push(row[row.length - 1]);        
@@ -213,8 +218,8 @@ function responseToRows(requestedFields, response, groupBy) {
         return result.push(formatMillis(row[0], field.getType()));        
       }
       else if(id.indexOf('groupBy_') === 0) {
-        result.push(row[groupByIndex]);
-        groupByIndex++;
+        var index = groupBy.indexOf(id.replace('groupBy_', '')) + groupByStartIndex;
+        result.push(row[index]);
         return;
       }
       return result.push('');
