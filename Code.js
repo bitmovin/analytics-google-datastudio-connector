@@ -259,10 +259,16 @@ function getData(request) {
     end:request.dateRange.endDate
   };
   
+  //always use the interval with the lowest rank in case there are multiple intervals defined
+  const intervalRanks = ['HOUR', 'DAY', 'MONTH'];
+
   requestedFields.asArray().forEach(function(field) {
     const id = field.getId();
     if(id.indexOf('interval_') === 0) {
-      data.interval = id.replace('interval_', '');
+      const interval = id.replace('interval_', '');
+      if(!data.interval || intervalRanks.indexOf(interval) < intervalRanks.indexOf(data.interval)) {
+        data.interval = interval;
+      }
     }
   });
   
