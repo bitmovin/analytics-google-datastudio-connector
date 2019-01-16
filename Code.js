@@ -100,7 +100,7 @@ function getConfig(request) {
   
   config.newSelectSingle()
     .setId('aggregation')
-    .setName('Select an aggregation')
+    .setName('Aggregation')
     .setHelpText('Select a aggregation')
     .setAllowOverride(true)
     .addOption(config.newOptionBuilder().setLabel('Count').setValue('count'))
@@ -122,16 +122,6 @@ function getConfig(request) {
   getDimensions().forEach(function(dimension) {
     dimensionSelect.addOption(config.newOptionBuilder().setLabel(dimension).setValue(dimension));
   });
-  
-  config.newSelectSingle()
-    .setId('interval')
-    .setName('Select an interval')
-    .setHelpText('Select an interval')
-    .setAllowOverride(true)
-    .addOption(config.newOptionBuilder().setLabel('No interval').setValue('NONE'))
-    .addOption(config.newOptionBuilder().setLabel('Hour').setValue('HOUR'))
-    .addOption(config.newOptionBuilder().setLabel('Day').setValue('DAY'))
-    .addOption(config.newOptionBuilder().setLabel('Month').setValue('MONTH'))
     
   config.setDateRangeRequired(true);
   
@@ -276,7 +266,7 @@ function getData(request) {
       }
     }
   });
-  
+
   requestedFields.asArray().forEach(function(field) {
     const id = field.getId();
     if(id.indexOf('groupBy_') === 0) {
@@ -292,13 +282,13 @@ function getData(request) {
     },
     'payload' : JSON.stringify(data)
   };
-//  throw new Error(JSON.stringify(options));
+  //throw new Error(JSON.stringify(options));
   var rows = [];
 
   var response = UrlFetchApp.fetch(url.join(''), options);
 //    throw new Error(JSON.stringify(response));
   var parsedJson = JSON.parse(response);
-//      throw new Error(JSON.stringify(parsedJson));
+      //throw new Error(JSON.stringify(parsedJson));
   if(parsedJson.data && parsedJson.data.result && parsedJson.data.result.rows) {
     rows = responseToRows(requestedFields, parsedJson.data.result.rows, data.groupBy);
   }
@@ -308,7 +298,7 @@ function getData(request) {
     rows: rows
   };
   
-//  throw new Error(JSON.stringify(result));
+  //throw new Error(JSON.stringify(result));
   return result;
 
 }
