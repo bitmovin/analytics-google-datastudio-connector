@@ -85,7 +85,7 @@ function getAuthType() {
 function getConfig(request) {
   var cc = DataStudioApp.createCommunityConnector();
   var config = cc.getConfig();
-//  
+
 //  config.newInfo()
 //    .setId('instructions')
 //    .setText('Enter your API key.');
@@ -123,6 +123,12 @@ function getConfig(request) {
     dimensionSelect.addOption(config.newOptionBuilder().setLabel(dimension).setValue(dimension));
   });
     
+  config.newTextInput()
+  .setId('filter')
+  .setName('Filter')
+  .setPlaceholder('{name:"STARTUPTIME","operator":"GT","value":0}')
+  .setAllowOverride(true);
+
   config.setDateRangeRequired(true);
   
   return config.build();
@@ -245,7 +251,6 @@ function getData(request) {
     ];
   
   var data = {
-    filters:[{"name":"STARTUPTIME","operator":"GT","value":0}],
     orderBy:[],
     groupBy:[],
     dimension: request.configParams.dimension,
@@ -253,8 +258,11 @@ function getData(request) {
     start: request.dateRange.startDate,
     end:request.dateRange.endDate
   };
-  
-  //always use the interval with the lowest rank in case there are multiple intervals defined
+
+  if (request.configParams.filter) {
+    data.filters = eval('(' + request.configParams.filter + ')');
+  }
+
   const intervalRanks = ['HOUR', 'DAY', 'MONTH'];
 
   requestedFields.asArray().forEach(function(field) {
@@ -286,7 +294,7 @@ function getData(request) {
   var rows = [];
 
   var response = UrlFetchApp.fetch(url.join(''), options);
-//    throw new Error(JSON.stringify(response));
+  //  throw new Error(JSON.stringify(response));
   var parsedJson = JSON.parse(response);
       //throw new Error(JSON.stringify(parsedJson));
   if(parsedJson.data && parsedJson.data.result && parsedJson.data.result.rows) {
