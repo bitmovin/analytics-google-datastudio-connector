@@ -132,13 +132,7 @@ function getConfig(request) {
     .addOption(config.newOptionBuilder().setLabel('Hour').setValue('HOUR'))
     .addOption(config.newOptionBuilder().setLabel('Day').setValue('DAY'))
     .addOption(config.newOptionBuilder().setLabel('Month').setValue('MONTH'))
-  
-//  config.newTextInput()
-//    .setId('groupBy')
-//    .setName('Group by')
-//    .setAllowOverride(true)
-//    .setHelpText('Comma separated list');
-  
+    
   config.setDateRangeRequired(true);
   
   return config.build();
@@ -159,26 +153,17 @@ function getFields(request) {
   fields.newDimension()
     .setId('interval_HOUR')
   .setName('Hour')
-//  .setFormula('TODATE(time_millis, "MILLIS", "%Y%m%d%H")')
   .setType(types.YEAR_MONTH_DAY_HOUR);
 
   fields.newDimension()
     .setId('interval_DAY')
   .setName('Day')
-//  .setFormula('TODATE(time_millis, "MILLIS", "%Y%m%d")')
   .setType(types.YEAR_MONTH_DAY);
 
   fields.newDimension()
     .setId('interval_MONTH')
   .setName('Month')
-//  .setFormula('TODATE(time_millis, "MILLIS", "%Y%m")')
   .setType(types.YEAR_MONTH);
-  
-//  fields.newDimension()
-//    .setId('time_millis')
-//    .setName('Time Millis')
-//    .setIsHidden(true)
-//    .setType(types.NUMBER);
 
   getDimensions().forEach(function(dimension) {
     fields.newDimension()
@@ -187,10 +172,6 @@ function getFields(request) {
     .setType(types.TEXT)
     .setGroup('Group By');
   });
-//  fields.newDimension()
-//    .setId('groupBy')
-//    .setName('Group By')
-//    .setType(types.TEXT);
 
   return fields;
 }
@@ -219,7 +200,7 @@ function formatMillis(millis, type) {
 
 function responseToRows(requestedFields, response, groupBy) {
 //  throw new Error(JSON.stringify(response));
-  // Transform parsed data and filter for requested fields
+  
   return response.map(function(row) {
     var result = [];
     var groupByIndex = 1;
@@ -236,19 +217,6 @@ function responseToRows(requestedFields, response, groupBy) {
         groupByIndex++;
         return;
       }
-//
-//        case 'groupBy':
-//          if(groupBy) {          
-//            groupBy.forEach(function(g, idx) {
-//              result.push(row[idx + 1]);
-//            });
-//            return;
-//          }
-////          return result.push(row[1]);
-//          return result.push('');          
-//        default:
-//          
-//      }
       return result.push('');
     });
     return { values: result };
@@ -256,7 +224,7 @@ function responseToRows(requestedFields, response, groupBy) {
 }
 
 function testGetData() {
-  getData({ fields: [{'name': 'dimension'}, {name: 'interval_HOUR'/*'time_millis'*/}, {name: 'groupBy_DEVICE_TYPE'}, {name: 'groupBy_BROWSER'}],
+  getData({ fields: [{'name': 'dimension'}, {name: 'interval_HOUR'}, {name: 'groupBy_DEVICE_TYPE'}, {name: 'groupBy_BROWSER'}],
            dateRange: {
              startDate: '2018-12-01',
              endDate: '2018-12-10'
@@ -285,7 +253,7 @@ function getData(request) {
     filters:[{"name":"STARTUPTIME","operator":"GT","value":0}],
     orderBy:[],
     groupBy:[],
-    dimension: /*'IMPRESSION_ID',//*/request.configParams.dimension,
+    dimension: request.configParams.dimension,
     licenseKey: "45adcf9b-8f7c-4e28-91c5-50ba3d442cd4", //request.configParams.licenseKey,
     start: request.dateRange.startDate,
     end:request.dateRange.endDate
