@@ -157,28 +157,19 @@ function getDimensions() {
       .setAggregation(aggregations.SUM);
   
     fields.newDimension()
-      .setId('time_hour')
+      .setId('interval_HOUR')
     .setName('Hour')
-    .setFormula('TODATE(time_millis, "MILLIS", "%Y%m%d%H")')
     .setType(types.YEAR_MONTH_DAY_HOUR);
   
     fields.newDimension()
-      .setId('time_day')
+      .setId('interval_DAY')
     .setName('Day')
-    .setFormula('TODATE(time_millis, "MILLIS", "%Y%m%d")')
     .setType(types.YEAR_MONTH_DAY);
   
     fields.newDimension()
-      .setId('time_month')
+      .setId('interval_MONTH')
     .setName('Month')
-    .setFormula('TODATE(time_millis, "MILLIS", "%Y%m")')
     .setType(types.YEAR_MONTH);
-    
-    fields.newDimension()
-      .setId('time_millis')
-      .setName('Time Millis')
-      .setIsHidden(true)
-      .setType(types.NUMBER);
   
     getDimensions().forEach(function(dimension) {
       fields.newDimension()
@@ -187,10 +178,6 @@ function getDimensions() {
       .setType(types.TEXT)
       .setGroup('Group By');
     });
-  //  fields.newDimension()
-  //    .setId('groupBy')
-  //    .setName('Group By')
-  //    .setType(types.TEXT);
   
     return fields;
   }
@@ -201,6 +188,20 @@ function getDimensions() {
   //  throw new Error(JSON.stringify(fields));
     
     return { schema: fields };
+  }
+  
+  function formatMillis(millis, type) {
+    var types = DataStudioApp.createCommunityConnector().FieldType;
+    var date = new Date(millis);
+    var formattedDate = String(date.getFullYear()).concat("0".concat(date.getMonth() + 1).slice(-2));
+    if(type === types.YEAR_MONTH) {
+      return formattedDate;
+    }
+    formattedDate = formattedDate.concat("0".concat(date.getDate()).slice(-2));
+    if(type === types.YEAR_MONTH_DAY_HOUR) {
+      formattedDate = formattedDate.concat("0".concat(date.getHours()).slice(-2));
+    }
+    return formattedDate;
   }
   
   function responseToRows(requestedFields, response, groupBy) {
@@ -214,27 +215,14 @@ function getDimensions() {
         if(id === 'dimension') {
           return result.push(row[row.length - 1]);        
         }
-        else if(id === 'time_millis') {
-          return result.push(row[0]);        
+        else if(id.indexOf('interval_') === 0) {
+          return result.push(formatMillis(row[0], field.getType()));        
         }
         else if(id.indexOf('groupBy_') === 0) {
           result.push(row[groupByIndex]);
           groupByIndex++;
           return;
         }
-  //
-  //        case 'groupBy':
-  //          if(groupBy) {          
-  //            groupBy.forEach(function(g, idx) {
-  //              result.push(row[idx + 1]);
-  //            });
-  //            return;
-  //          }
-  ////          return result.push(row[1]);
-  //          return result.push('');          
-  //        default:
-  //          
-  //      }
         return result.push('');
       });
       return { values: result };
@@ -242,7 +230,7 @@ function getDimensions() {
   }
   
   function testGetData() {
-    getData({ fields: [{'name': 'dimension'}, {name: 'time_millis'}, {name: 'groupBy_DEVICE_TYPE'}, {name: 'groupBy_BROWSER'}],
+    getData({ fields: [{'name': 'dimension'}, {name: 'interval_HOUR'/*'time_millis'*/}, {name: 'groupBy_DEVICE_TYPE'}, {name: 'groupBy_BROWSER'}],
              dateRange: {
                startDate: '2018-12-01',
                endDate: '2018-12-10'
@@ -256,7 +244,7 @@ function getDimensions() {
   }
   
   function getData(request) {
-    throw new Error(JSON.stringify(request));
+  //  throw new Error(JSON.stringify(request));
     var requestedFieldIds = request.fields.map(function(field) {
       return field.name;
     });
@@ -277,10 +265,14 @@ function getDimensions() {
       end:request.dateRange.endDate
     };
     
-    if(request.configParams.interval !== 'NONE') {
-      data.interval = request.configParams.interval;
-    }
+    requestedFields.asArray().forEach(function(field) {
+      const id = field.getId();
+      if(id.indexOf('interval_') === 0) {
+        data.interval = id.replace('interval_', '');
+      }
+    });
     
+    //todo take smallest interval if multiple
     requestedFields.asArray().forEach(function(field) {
       const id = field.getId();
       if(id.indexOf('groupBy_') === 0) {
