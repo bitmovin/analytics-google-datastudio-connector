@@ -174,9 +174,6 @@ function getFields(request) {
 
 function getSchema(request) {
   var fields = getFields(request).build();
-  
-//  throw new Error(JSON.stringify(fields));
-  
   return { schema: fields };
 }
 
@@ -254,7 +251,7 @@ function getData(request) {
     orderBy:[],
     groupBy:[],
     dimension: request.configParams.dimension,
-    licenseKey: "45adcf9b-8f7c-4e28-91c5-50ba3d442cd4", //request.configParams.licenseKey,
+    licenseKey: request.configParams.licenseKey, //45adcf9b-8f7c-4e28-91c5-50ba3d442cd4
     start: request.dateRange.startDate,
     end:request.dateRange.endDate
   };
@@ -286,17 +283,16 @@ function getData(request) {
     'method' : 'post',
     'contentType': 'application/json',
     'headers': {
-      'x-api-key': '0b91f6ba-82f7-4d20-a827-09cdf6e15adc' //request.configParams.apiKey
+      'x-api-key': request.configParams.apiKey//0b91f6ba-82f7-4d20-a827-09cdf6e15adc
     },
     'payload' : JSON.stringify(data)
   };
-  //throw new Error(JSON.stringify(options));
+  
   var rows = [];
 
   var response = UrlFetchApp.fetch(url.join(''), options);
-  //  throw new Error(JSON.stringify(response));
   var parsedJson = JSON.parse(response);
-      //throw new Error(JSON.stringify(parsedJson));
+
   if(parsedJson.data && parsedJson.data.result && parsedJson.data.result.rows) {
     rows = responseToRows(requestedFields, parsedJson.data.result.rows, data.groupBy);
   }
@@ -306,7 +302,6 @@ function getData(request) {
     rows: rows
   };
   
-  //throw new Error(JSON.stringify(result));
   return result;
 
 }
