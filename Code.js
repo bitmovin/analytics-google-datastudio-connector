@@ -187,6 +187,8 @@ function getFields(request) {
 }
 
 function getSchema(request) {
+  validateConfig(request.configParams);
+
   var fields = getFields(request).build();
   return { schema: fields };
 }
@@ -249,8 +251,43 @@ function testGetData() {
            }}); 
 }
 
+function validateConfig(configParams) {
+  configParams = configParams || {};
+  try {
+    if(!configParams.aggregation) {
+      throw new Error('Aggregation is required.');
+    }
+    if(!configParams.dimension) {
+      throw new Error('Dimension is required.');
+    }
+    if(!configParams.licenseKey) {
+      throw new Error('License key is required.');
+    }
+    if(!configParams.apiKey) {
+      throw new Error('API key is required.');
+    }
+
+    if(configParams.limit && isNaN(parseInt(configParams.limit))) {
+      throw new Error('Limit has to be a numeric value.');
+    }
+
+    if(configParams.offset && isNaN(parseInt(configParams.offset))) {
+      throw new Error('Offset has to be a numeric value.');
+    }
+  }
+  catch(e) {
+    DataStudioApp.createCommunityConnector()
+    .newUserError()
+    //.setDebugText('Error fetching data from API. Exception details: ' + e)
+    //.setText('There was an error communicating with the service. Try again later, or file an issue if this error persists.')
+    .setText(e.message)
+    .throwException();
+  }
+}
+
 function getData(request) {
-//  throw new Error(JSON.stringify(request));
+  validateConfig(request.configParams);
+  //throw new Error(JSON.stringify(request));
   var requestedFieldIds = request.fields.map(function(field) {
     return field.name;
   });
