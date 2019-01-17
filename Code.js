@@ -212,7 +212,7 @@ function responseToRows(requestedFields, response, groupBy) {
       }
       else if(id.indexOf('groupBy_') === 0) {
         var index = groupBy.indexOf(id.replace('groupBy_', '')) + groupByStartIndex;
-        result.push(row[index]);
+        result.push(String(row[index]));
         return;
       }
       return result.push('');
