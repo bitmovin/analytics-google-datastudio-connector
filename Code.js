@@ -73,7 +73,7 @@ function getDimensions() {
 }
 
 function isAdminUser() {
-  return true;
+  return false;
 }
 
 function getAuthType() {
