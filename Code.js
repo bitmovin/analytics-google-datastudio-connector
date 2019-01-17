@@ -124,10 +124,24 @@ function getConfig(request) {
   });
     
   config.newTextInput()
-  .setId('filter')
-  .setName('Filter')
-  .setPlaceholder('{name:"STARTUPTIME","operator":"GT","value":0}')
-  .setAllowOverride(true);
+    .setId('filter')
+    .setName('Filter')
+    .setPlaceholder('{name:"STARTUPTIME","operator":"GT","value":0}')
+    .setAllowOverride(true);
+    
+    config.newTextInput()
+      .setId('limit')
+      .setName('Limit')
+      .setHelpText('Maximum number of rows returned (max. 150)')
+      .setPlaceholder('150')
+      .setAllowOverride(true);
+    
+    config.newTextInput()
+      .setId('offset')
+      .setName('Offset')
+      .setHelpText('Offset of data')
+      .setPlaceholder('0')
+      .setAllowOverride(true);
 
   config.setDateRangeRequired(true);
   
@@ -258,6 +272,14 @@ function getData(request) {
 
   if (request.configParams.filter) {
     data.filters = eval('(' + request.configParams.filter + ')');
+  }
+  
+  if (request.configParams.limit) {
+    data.limit = request.configParams.limit;
+  }
+
+  if (request.configParams.offset) {
+    data.offset = request.configParams.offset;
   }
 
   const intervalRanks = ['HOUR', 'DAY', 'MONTH'];
