@@ -85,10 +85,6 @@ function getAuthType() {
 function getConfig(request) {
   var cc = DataStudioApp.createCommunityConnector();
   var config = cc.getConfig();
-
-//  config.newInfo()
-//    .setId('instructions')
-//    .setText('Enter your API key.');
   
   config.newTextInput()
     .setId('apiKey')
@@ -192,6 +188,18 @@ function getSchema(request) {
   var fields = getFields(request).build();
   return { schema: fields };
 }
+
+// TODO change formatMillis
+// function formatDate(date) {
+//   return !date
+//     ? null
+//     : date instanceof Date
+//       ? formatDate(date.toISOString())
+//       : date.slice(0, 4) +
+//         date.slice(5, 7) +
+//         date.slice(8, 10) +
+//         date.slice(11, 13);
+// }
 
 function formatMillis(millis, type) {
   var types = DataStudioApp.createCommunityConnector().FieldType;
