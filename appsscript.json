@@ -1,12 +1,11 @@
 {
   "dataStudio": {
-    "name": "npm Downloads - From Codelab",
-    "logoUrl": "https://raw.githubusercontent.com/npm/logos/master/%22npm%22%20lockup/npm-logo-simplifed-with-white-space.png",
-    "company": "Codelab user",
-    "companyUrl": "https://developers.google.com/datastudio/",
-    "addonUrl": "https://github.com/google/datastudio/tree/master/community-connectors/npm-downloads",
-    "supportUrl": "https://github.com/google/datastudio/issues",
-    "description": "Get npm package download counts.",
-    "sources": ["npm"]
+    "name": "Bitmovin Analytics",
+    "logoUrl": "https://avatars2.githubusercontent.com/u/3273006?s=200&v=4",
+    "company": "Bitmovin",
+    "companyUrl": "https://bitmovin.com",
+    "addonUrl": "https://github.com/bitmovin/analytics-google-datastudio-connector",
+    "supportUrl": "https://github.com/bitmovin/analytics-google-datastudio-connector/issues",
+    "description": "Google Data Studio Connector for the Bitmovin Analytics API."
   }
 }
