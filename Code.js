@@ -190,29 +190,14 @@ function getSchema(request) {
 }
 
 // TODO change formatMillis
-// function formatDate(date) {
-//   return !date
-//     ? null
-//     : date instanceof Date
-//       ? formatDate(date.toISOString())
-//       : date.slice(0, 4) +
-//         date.slice(5, 7) +
-//         date.slice(8, 10) +
-//         date.slice(11, 13);
-// }
-
-function formatMillis(millis, type) {
+function formatMillis(millis) {
   var types = DataStudioApp.createCommunityConnector().FieldType;
-  var date = new Date(millis);
-  var formattedDate = String(date.getFullYear()).concat("0".concat(date.getMonth() + 1).slice(-2));
-  if(type === types.YEAR_MONTH) {
-    return formattedDate;
-  }
-  formattedDate = formattedDate.concat("0".concat(date.getDate()).slice(-2));
-  if(type === types.YEAR_MONTH_DAY_HOUR) {
-    formattedDate = formattedDate.concat("0".concat(date.getHours()).slice(-2));
-  }
-  return formattedDate;
+  var date = new Date(millis).toISOString();
+  var result = date.slice(0, 4) + date.slice(5, 7);
+  if(type === types.YEAR_MONTH) return result;
+  result = result.concat(date.slice(8, 10));
+  if(type === types.YEAR_MONTH_DAY) return result;
+  return result.concat(date.slice(11, 13));
 }
 
 function responseToRows(requestedFields, response, groupBy) {
