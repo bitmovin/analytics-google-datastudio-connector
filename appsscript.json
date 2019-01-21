@@ -1,11 +1,16 @@
 {
   "dataStudio": {
     "name": "Bitmovin Analytics",
-    "logoUrl": "https://avatars2.githubusercontent.com/u/3273006?s=200&v=4",
+    "logoUrl": "https://cdn.bitmovin.com/frontend/shared/images/favicon/favicon-96x96.png",
     "company": "Bitmovin",
     "companyUrl": "https://bitmovin.com",
     "addonUrl": "https://github.com/bitmovin/analytics-google-datastudio-connector",
     "supportUrl": "https://github.com/bitmovin/analytics-google-datastudio-connector/issues",
-    "description": "Google Data Studio Connector for the Bitmovin Analytics API."
-  }
+    "description": "Google Data Studio Connector for the Bitmovin Analytics API. To use this connector you will need an API and license key for Bitmovin Analytics. Create your account at https://bitmovin.com/dashboard/signup",
+    "shortDescription": "Connect to your Bitmovin Analytics data.",
+    "authType": ["NONE"],
+    "feeType": ["FREE"],
+    "sources": ["BITMOVIN_ANALYTICS"]
+  },
+  "urlFetchWhitelist": ["https://api.bitmovin.com/v1/analytics/queries/"]
 }
