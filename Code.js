@@ -189,8 +189,7 @@ function getSchema(request) {
   return { schema: fields };
 }
 
-// TODO change formatMillis
-function formatMillis(millis) {
+function formatMillis(millis, type) {
   var types = DataStudioApp.createCommunityConnector().FieldType;
   var date = new Date(millis).toISOString();
   var result = date.slice(0, 4) + date.slice(5, 7);
@@ -230,20 +229,6 @@ function responseToRows(requestedFields, response, groupBy) {
   });
 }
 
-function testGetData() {
-  getData({ fields: [{'name': 'dimension'}, {name: 'interval_HOUR'}, {name: 'groupBy_DEVICE_TYPE'}, {name: 'groupBy_BROWSER'}],
-           dateRange: {
-             startDate: '2018-12-01',
-             endDate: '2018-12-10'
-           },
-           configParams: {
-             interval: 'DAY',
-             aggregation: 'count',
-             dimension: 'IMPRESSION_ID',
-             groupBy: 'BROWSER, OPERATINGSYSTEM'
-           }}); 
-}
-
 function validateConfig(configParams) {
   configParams = configParams || {};
   try {
@@ -271,8 +256,6 @@ function validateConfig(configParams) {
   catch(e) {
     DataStudioApp.createCommunityConnector()
     .newUserError()
-    //.setDebugText('Error fetching data from API. Exception details: ' + e)
-    //.setText('There was an error communicating with the service. Try again later, or file an issue if this error persists.')
     .setText(e.message)
     .throwException();
   }
@@ -280,7 +263,7 @@ function validateConfig(configParams) {
 
 function getData(request) {
   validateConfig(request.configParams);
-  //throw new Error(JSON.stringify(request));
+  
   var requestedFieldIds = request.fields.map(function(field) {
     return field.name;
   });
@@ -295,7 +278,7 @@ function getData(request) {
     orderBy:[],
     groupBy:[],
     dimension: request.configParams.dimension,
-    licenseKey: request.configParams.licenseKey, //45adcf9b-8f7c-4e28-91c5-50ba3d442cd4
+    licenseKey: request.configParams.licenseKey,
     start: request.dateRange.startDate,
     end:request.dateRange.endDate
   };
@@ -335,18 +318,26 @@ function getData(request) {
     'method' : 'post',
     'contentType': 'application/json',
     'headers': {
-      'x-api-key': request.configParams.apiKey//0b91f6ba-82f7-4d20-a827-09cdf6e15adc
+      'x-api-key': request.configParams.apiKey
     },
     'payload' : JSON.stringify(data)
   };
   
   var rows = [];
 
-  var response = UrlFetchApp.fetch(url.join(''), options);
-  var parsedJson = JSON.parse(response);
-
-  if(parsedJson.data && parsedJson.data.result && parsedJson.data.result.rows) {
-    rows = responseToRows(requestedFields, parsedJson.data.result.rows, data.groupBy);
+  try {
+    var response = UrlFetchApp.fetch(url.join(''), options);
+    var parsedJson = JSON.parse(response);
+  
+    if(parsedJson.data && parsedJson.data.result && parsedJson.data.result.rows) {
+      rows = responseToRows(requestedFields, parsedJson.data.result.rows, data.groupBy);
+    }
+  } catch(e) {
+    DataStudioApp.createCommunityConnector()
+      .newUserError()
+      .setDebugText('Error fetching data from API. Exception details: ' + e)
+      .setText('There was an error querying the Bitmovin API.')
+      .throwException();
   }
   
   var result = {
