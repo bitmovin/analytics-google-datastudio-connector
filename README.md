@@ -1,16 +1,18 @@
-# analytics-google-datastudio-connector
-Connector for Google Data Studio to Bitmovin Analytics
+# Bitmovin Analytics Community Connector for Data Studio
 
-## Set up development environment
-https://github.com/google/clasp
+*This is not an official Google product*
 
-## Debugging 
-The bet way to debug variables in the online environment is to throw Exceptions with the content of the variables as JSON strings:
-`throw new Error(JSON.stringify(options));`
+This [Data Studio](https://datastudio.google.com) [Community
+Connector](https://developers.google.com/datastudio/connector) lets users query
+the [Bitmovin Analytics](https://bitmovin.com/video-analytics/) API.
 
-Make sure to change to admin mode first by adding the following function, otherwise error messages won't be displayed:
-```
-function isAdminUser() {
-  return true;
-}
-```
+## Try the Community Connector in Data Studio
+
+You can try out the managed deployment of the latest code: [Bitmovin Analytics
+Community
+Connector](https://datastudio.google.com/datasources/create?connectorId=AKfycbzbu3CKMj7bQSuIcwBtpF_xJffWAyJyR9Js2xxAXLK6)
+
+## Deploy the Community Connector yourself
+
+Use the [deployment guide](../deploy.md) to deploy the Community Connector
+yourself.

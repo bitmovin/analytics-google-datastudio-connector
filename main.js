@@ -1,3 +1,18 @@
+/******************************************************************************
+ * Copyright (C) 2019, bitmovin GmbH, All Rights Reserved                    *
+ *                                                                           *
+ * Created on: 25.08.2015                                                    *
+ * Author: Wolfram Hofmeister   <wolfram.hofmeister@bitmovin.net>            *
+ *                                                                           *
+ * This source code and its use and distribution, is subject to the terms    *
+ * and conditions of the applicable license agreement.                       *
+ *****************************************************************************/
+
+ /**
+  * Returns the available dimensions the user can use to query or group the API results.
+  * 
+  * @returns {String[]} Array of the available dimensions.
+  */
 function getDimensions() {
   if(this.dimensions === undefined) {
     this.dimensions = ['AD',
@@ -72,16 +87,36 @@ function getDimensions() {
   return this.dimensions;
 }
 
+/**
+ * This checks whether the current user is an admin user of the connector.
+ *
+ * @returns {boolean} Returns true if the current authenticated user at the time
+ * of function execution is an admin user of the connector. If the function is
+ * omitted or if it returns false, then the current user will not be considered
+ * an admin user of the connector.
+ */
 function isAdminUser() {
   return false;
 }
 
+/**
+ * Returns the authentication method required by the connector to authorize the
+ * third-party service.
+ *
+ * @returns {Object} `AuthType` used by the connector.
+ */
 function getAuthType() {
   return {
     type: 'NONE'
   };
 }
 
+/**
+ * Returns the user configurable options for the connector.
+ *
+ * @param {Object} request Config request parameters.
+ * @returns {Object} Connector configuration to be displayed to the user.
+ */
 function getConfig(request) {
   var cc = DataStudioApp.createCommunityConnector();
   var config = cc.getConfig();
@@ -144,6 +179,11 @@ function getConfig(request) {
   return config.build();
 }
 
+/**
+ * Returns the fields for the connector.
+ *
+ * @returns {Object} The fields for the connector.
+ */
 function getFields(request) {
   var cc = DataStudioApp.createCommunityConnector();
   var fields = cc.getFields();
@@ -182,6 +222,12 @@ function getFields(request) {
   return fields;
 }
 
+/**
+ * Returns the schema for the given request.
+ *
+ * @param {Object} request Schema request parameters.
+ * @returns {Object} Schema for the given request.
+ */
 function getSchema(request) {
   validateConfig(request.configParams);
 
@@ -189,6 +235,14 @@ function getSchema(request) {
   return { schema: fields };
 }
 
+/**
+ * Formats the supplied Unix timestamp in millis as a date string,
+ * depending on the type that is provided as the second parameter.
+ * 
+ * @param {Number} millis Unix timestamp in millis.
+ * @param {FieldType} type Format of the string that will be returned.
+ * @returns {String} A date string according to the type provided. 
+ */
 function formatMillis(millis, type) {
   var types = DataStudioApp.createCommunityConnector().FieldType;
   var date = new Date(millis).toISOString();
@@ -199,6 +253,15 @@ function formatMillis(millis, type) {
   return result.concat(date.slice(11, 13));
 }
 
+/**
+ * Formats the parsed response from external data source into correct tabular
+ * format and returns only the requestedFields.
+ * 
+ * @param {Object} requestedFields The fields requested in the getData request.
+ * @param {Array} response An array of rows returned from the Bitmovin API.
+ * @param {Array} groupBy An array of dimensions that have been used to group the data.
+ * @returns {Array} Array containing rows of data according to the requested fields.
+ */
 function responseToRows(requestedFields, response, groupBy) {
   const fields = requestedFields.asArray();
   var groupByStartIndex = 0;
@@ -229,6 +292,11 @@ function responseToRows(requestedFields, response, groupBy) {
   });
 }
 
+/**
+ * Validates config parameters and displays an error if the config is invalid.
+ *
+ * @param {Object} configParams Config parameters from `request`.
+ */
 function validateConfig(configParams) {
   configParams = configParams || {};
   try {
@@ -261,6 +329,12 @@ function validateConfig(configParams) {
   }
 }
 
+/**
+ * Returns the tabular data for the given request.
+ *
+ * @param {Object} request Data request parameters.
+ * @returns {Object} Contains the schema and data for the given request.
+ */
 function getData(request) {
   validateConfig(request.configParams);
   
