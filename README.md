@@ -14,5 +14,5 @@ Connector](https://datastudio.google.com/datasources/create?connectorId=AKfycbzb
 
 ## Deploy the Community Connector yourself
 
-Use the [deployment guide](../deploy.md) to deploy the Community Connector
+Use the [deployment guide](https://github.com/googledatastudio/community-connectors/blob/master/deploy.md) to deploy the Community Connector
 yourself.
