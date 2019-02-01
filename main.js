@@ -153,6 +153,13 @@ function getConfig(request) {
     .addOption(config.newOptionBuilder().setLabel('Variance').setValue('variance'))
     .addOption(config.newOptionBuilder().setLabel('Median').setValue('median'));
   
+    config.newTextInput()
+      .setId('percentile')
+      .setName('Percentile')
+      .setHelpText('Percentile (0-99)')
+      .setPlaceholder('Percentile (0-99)')
+      .setAllowOverride(true);
+      
   const dimensionSelect = config.newSelectSingle()
     .setId('dimension')
     .setName('Dimension')
@@ -329,6 +336,13 @@ function validateConfig(configParams) {
     if(configParams.offset && isNaN(parseInt(configParams.offset))) {
       throw new Error('Offset has to be a numeric value.');
     }
+
+    if(configParams.aggregation === 'percentile') {
+      var percentile = parseInt(configParams.percentile);
+      if(isNaN(percentile) || percentile < 0 || percentile > 100) {
+        throw new Error('You have to set the percentile to a value between 0 and 99.');
+      }
+    }
   }
   catch(e) {
     DataStudioApp.createCommunityConnector()
@@ -376,6 +390,10 @@ function getData(request) {
 
   if (request.configParams.offset) {
     data.offset = request.configParams.offset;
+  }
+
+  if(request.configParams.aggregation === 'percentile') {
+    data.percentile = request.configParams.percentile;
   }
 
   const intervalRanks = ['HOUR', 'DAY', 'MONTH'];
