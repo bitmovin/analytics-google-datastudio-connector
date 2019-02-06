@@ -416,28 +416,40 @@ function getData(request) {
   });
   
   var options = {
-    'method' : 'post',
-    'contentType': 'application/json',
-    'headers': {
+    method : 'post',
+    contentType: 'application/json',
+    headers: {
       'x-api-key': request.configParams.apiKey
     },
-    'payload' : JSON.stringify(data)
+    payload : JSON.stringify(data),
+    muteHttpExceptions: true
   };
   
   var rows = [];
 
   try {
     var response = UrlFetchApp.fetch(url.join(''), options);
-    var parsedJson = JSON.parse(response);
+    var parsedJson = JSON.parse(response.getContentText());
   
-    if(parsedJson.data && parsedJson.data.result && parsedJson.data.result.rows) {
-      rows = responseToRows(requestedFields, parsedJson.data.result.rows, data.groupBy);
+    if(response.getResponseCode() === 200) {
+      if(parsedJson.data && parsedJson.data.result && parsedJson.data.result.rows) {
+        rows = responseToRows(requestedFields, parsedJson.data.result.rows, data.groupBy);
+      }
     }
+    else {
+      var errorMessage = parsedJson.data && parsedJson.data.message ? parsedJson.data.message : 'Unknown error.'
+      DataStudioApp.createCommunityConnector()
+        .newUserError()
+        .setDebugText('Error fetching data from API. Response: ' + response.getContentText())
+        .setText('There was an error querying the Bitmovin API: ' + errorMessage)
+        .throwException();
+    }
+
   } catch(e) {
     DataStudioApp.createCommunityConnector()
       .newUserError()
       .setDebugText('Error fetching data from API. Exception details: ' + e)
-      .setText('There was an error querying the Bitmovin API.')
+      .setText('An unknown error occured while querying the Bitmovin API.')
       .throwException();
   }
   
