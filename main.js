@@ -376,8 +376,8 @@ function getData(request) {
     groupBy:[],
     dimension: request.configParams.dimension,
     licenseKey: request.configParams.licenseKey,
-    start: request.dateRange.startDate,
-    end:request.dateRange.endDate
+    start: request.dateRange.startDate + 'T00:00:00.000Z',
+    end:request.dateRange.endDate + 'T23:59:59.000Z'
   };
 
   if (request.configParams.filter) {
