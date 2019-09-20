@@ -138,6 +138,11 @@ function getConfig(request) {
     .setName("Enter your API key");
 
   config
+      .newTextInput()
+      .setId("tenantOrgId")
+      .setName("Enter the tenant organization ID, if applicable");
+
+  config
     .newTextInput()
     .setId("licenseKey")
     .setName("Enter your license key");
@@ -492,6 +497,12 @@ function getData(request) {
     payload: JSON.stringify(data),
     muteHttpExceptions: true
   };
+
+  const  tenantId = request.configParams.tenantOrgId;
+
+  if (tenantId){
+    options['X-Tenant-Org-Id'] = tenantId;
+  }
 
   var rows = [];
 
