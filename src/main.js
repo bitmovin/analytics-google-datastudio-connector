@@ -501,7 +501,7 @@ function getData(request) {
   const  tenantId = request.configParams.tenantOrgId;
 
   if (tenantId){
-    options['X-Tenant-Org-Id'] = tenantId;
+    options['headers']['x-tenant-org-id'] = tenantId;
   }
 
   var rows = [];
