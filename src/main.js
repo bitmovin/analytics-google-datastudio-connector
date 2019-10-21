@@ -84,6 +84,7 @@ function getDimensions() {
       "VIDEO_PLAYBACK_HEIGHT",
       "VIDEO_PLAYBACK_WIDTH",
       "VIDEO_STARTUPTIME",
+      "VIDEO_TITLE",
       "VIDEO_WINDOW_HEIGHT",
       "VIDEO_WINDOW_WIDTH",
       "VIDEOTIME_END",
