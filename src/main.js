@@ -102,6 +102,29 @@ function getDimensions() {
 }
 
 /**
+ * Returns the available aggregations the user can use to query API results.
+ *
+ * @returns {Array} Array of the available aggregations.
+ */
+function getAggregations() {
+  if (this.aggregations == null) {
+    this.aggregations = [
+      { label: "Count", value: "count" },
+      { label: "Sum", value: "sum" },
+      { label: "Avg", value: "avg" },
+      { label: "Min", value: "min" },
+      { label: "Max", value: "max" },
+      { label: "Stddev", value: "stddev" },
+      { label: "Percentile", value: "percentile" },
+      { label: "Variance", value: "variance" },
+      { label: "Median", value: "median" },
+      { label: "Metrics", value: "metrics" }
+    ];
+  }
+  return this.aggregations;
+}
+
+/**
  * This checks whether the current user is an admin user of the connector.
  *
  * @returns {boolean} Returns true if the current authenticated user at the time
@@ -141,75 +164,30 @@ function getConfig(request) {
     .setName("Enter your API key");
 
   config
-      .newTextInput()
-      .setId("tenantOrgId")
-      .setName("Enter the tenant organization ID, if applicable");
+    .newTextInput()
+    .setId("tenantOrgId")
+    .setName("Enter the tenant organization ID, if applicable");
 
   config
     .newTextInput()
     .setId("licenseKey")
     .setName("Enter your license key");
 
-  config
+  const aggregationSelect = config
     .newSelectSingle()
     .setId("aggregation")
     .setName("Aggregation")
     .setHelpText("Select a aggregation")
-    .setAllowOverride(true)
-    .addOption(
+    .setAllowOverride(true);
+
+  getAggregations().forEach(function(aggregation) {
+    aggregationSelect.addOption(
       config
         .newOptionBuilder()
-        .setLabel("Count")
-        .setValue("count")
-    )
-    .addOption(
-      config
-        .newOptionBuilder()
-        .setLabel("Sum")
-        .setValue("sum")
-    )
-    .addOption(
-      config
-        .newOptionBuilder()
-        .setLabel("Avg")
-        .setValue("avg")
-    )
-    .addOption(
-      config
-        .newOptionBuilder()
-        .setLabel("Min")
-        .setValue("min")
-    )
-    .addOption(
-      config
-        .newOptionBuilder()
-        .setLabel("Max")
-        .setValue("max")
-    )
-    .addOption(
-      config
-        .newOptionBuilder()
-        .setLabel("Stddev")
-        .setValue("stddev")
-    )
-    .addOption(
-      config
-        .newOptionBuilder()
-        .setLabel("Percentile")
-        .setValue("percentile")
-    )
-    .addOption(
-      config
-        .newOptionBuilder()
-        .setLabel("Variance")
-        .setValue("variance")
-    )
-    .addOption(
-      config
-        .newOptionBuilder()
-        .setLabel("Median")
-        .setValue("median")
+        .setLabel(aggregation.label)
+        .setValue(aggregation.value)
     );
+  });
 
   config
     .newTextInput()
@@ -501,10 +479,10 @@ function getData(request) {
     muteHttpExceptions: true
   };
 
-  const  tenantId = request.configParams.tenantOrgId;
+  const tenantId = request.configParams.tenantOrgId;
 
-  if (tenantId){
-    options['headers']['x-tenant-org-id'] = tenantId;
+  if (tenantId) {
+    options["headers"]["x-tenant-org-id"] = tenantId;
   }
 
   var rows = [];
