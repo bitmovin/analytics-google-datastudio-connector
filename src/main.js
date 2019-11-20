@@ -95,7 +95,10 @@ function getDimensions() {
       "OPERATINGSYSTEM_VERSION_MAJOR",
       "PAGE_LOAD_TIME",
       "PAGE_LOAD_TYPE",
-      "PROG_URL"
+      "PROG_URL",
+      "max_concurrentviewers",
+      "avg_concurrentviewers",
+      "avg_dropped_frames"
     ];
   }
   return this.dimensions;
@@ -122,6 +125,22 @@ function getAggregations() {
     ];
   }
   return this.aggregations;
+}
+
+/**
+ * Returns the available metrics the user can use to query API results for the metrics dimension.
+ *
+ * @returns {Array} Array of the available metrics.
+ */
+function getMetrics() {
+  if (this.metrics == null) {
+    this.metrics = [
+      {label: "Max Concurrent Viewers", value: "max_concurrentviewers"},
+      {label: "Avg Concurrent Viewers", value: "avg_concurrentviewers"},
+      {label: "Avg Dropped Frames",     value: "avg_dropped_frames"}
+    ];
+  }
+  return this.metrics;
 }
 
 /**
@@ -359,6 +378,34 @@ function responseToRows(requestedFields, response, groupBy) {
 }
 
 /**
+ * Checks if the passed dimension is a metric (e.g. max_concurrentviewers).
+ *
+ * @param {String} dimension The dimension to check
+ * @returns {Object} The corresponding metric object or undefined.
+ */
+function dimensionIsMetric(dimension) {
+  return getMetrics().find(function(metric){
+    return metric.value === dimension
+  });
+}
+
+/**
+ * Validates config parameters if the selected aggregation and dimension are valid.
+ *
+ * @param {Object} configParams Config parameters from `request`.
+ * @throws An exception if the config is invalid
+ */
+function validateAggregationAndDimension(configParams) {
+  if (configParams.aggregation === "metrics") {
+    Logger.log("Validate aggregation for metric if dimension is set correctly");
+    if(!dimensionIsMetric(configParams.dimension)) {
+      const prettyMetricsText = JSON.stringify(getMetrics().map(function(m){return m.label}));
+      throw new Error("The selected dimension must be one of " + prettyMetricsText)
+    }
+  }
+}
+
+/**
  * Validates config parameters and displays an error if the config is invalid.
  *
  * @param {Object} configParams Config parameters from `request`.
@@ -395,12 +442,28 @@ function validateConfig(configParams) {
         );
       }
     }
+    validateAggregationAndDimension(configParams);
   } catch (e) {
     DataStudioApp.createCommunityConnector()
       .newUserError()
       .setText(e.message)
       .throwException();
   }
+}
+
+/**
+ * Returns the analytics request URL based on the request configuration.
+ *
+ * @param {Object} request Data request parameters.
+ * @returns {String} Correct analytics request URL.
+ */
+function getAnalyticsRequestUrl(request) {
+  const selectedMetric = dimensionIsMetric(request.configParams.dimension);
+  Logger.log(selectedMetric);
+  if (selectedMetric) {
+    return ["https://api.bitmovin.com/v1/analytics/metrics/", selectedMetric.value];
+  }
+  return ["https://api.bitmovin.com/v1/analytics/queries/", request.configParams.aggregation];
 }
 
 /**
@@ -417,10 +480,7 @@ function getData(request) {
   });
   var requestedFields = getFields(request).forIds(requestedFieldIds);
 
-  var url = [
-    "https://api.bitmovin.com/v1/analytics/queries/",
-    request.configParams.aggregation
-  ];
+  var url = getAnalyticsRequestUrl(request);
 
   var data = {
     orderBy: [],
