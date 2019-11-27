@@ -221,7 +221,7 @@ function getConfig(request) {
     .setAllowOverride(true);
 
   getDimensions().forEach(function(dimension) {
-    var metric = dimensionIsMetric(dimension);
+    var metric = getMetricForDimension(dimension);
     var label = metric != null ? metric.label : dimension;
     dimensionSelect.addOption(
       config
@@ -377,12 +377,12 @@ function responseToRows(requestedFields, response, groupBy) {
 }
 
 /**
- * Checks if the passed dimension is a metric (e.g. max_concurrentviewers).
+ * Return the corresponding metric for the given dimension (e.g. max_concurrentviewers).
  *
  * @param {String} dimension The dimension to check
  * @returns {Object|undefined} The corresponding metric object or undefined.
  */
-function dimensionIsMetric(dimension) {
+function getMetricForDimension(dimension) {
   var metrics = getMetrics();
   for(var i = 0; i < metrics.length; i++) {
     if (metrics[i].value === dimension) {
@@ -400,7 +400,7 @@ function dimensionIsMetric(dimension) {
  */
 function validateAggregationAndDimension(configParams) {
   if (configParams.aggregation === "metrics") {
-    if(dimensionIsMetric(configParams.dimension) == null) {
+    if(getMetricForDimension(configParams.dimension) == null) {
       const prettyMetricsText = JSON.stringify(getMetrics().map(function(m){return m.label}));
       throw new Error("The selected dimension must be one of " + prettyMetricsText)
     }
@@ -460,7 +460,7 @@ function validateConfig(configParams) {
  * @returns {String} Correct analytics request URL.
  */
 function getAnalyticsRequestUrl(request) {
-  const selectedMetric = dimensionIsMetric(request.configParams.dimension);
+  const selectedMetric = getMetricForDimension(request.configParams.dimension);
   if (selectedMetric) {
     return ["https://api.bitmovin.com/v1/analytics/metrics/", selectedMetric.value];
   }
