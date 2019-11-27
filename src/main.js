@@ -381,12 +381,16 @@ function responseToRows(requestedFields, response, groupBy) {
  * Checks if the passed dimension is a metric (e.g. max_concurrentviewers).
  *
  * @param {String} dimension The dimension to check
- * @returns {Object} The corresponding metric object or undefined.
+ * @returns {Object|undefined} The corresponding metric object or undefined.
  */
 function dimensionIsMetric(dimension) {
-  return getMetrics().find(function(metric){
-    return metric.value === dimension
-  });
+  var metrics = getMetrics();
+  for(var i = 0; i < metrics.length; i++) {
+    if (metrics[i].value === dimension) {
+      return metrics[i];
+    }
+  }
+  return undefined;
 }
 
 /**
@@ -397,8 +401,7 @@ function dimensionIsMetric(dimension) {
  */
 function validateAggregationAndDimension(configParams) {
   if (configParams.aggregation === "metrics") {
-    Logger.log("Validate aggregation for metric if dimension is set correctly");
-    if(!dimensionIsMetric(configParams.dimension)) {
+    if(dimensionIsMetric(configParams.dimension) == null) {
       const prettyMetricsText = JSON.stringify(getMetrics().map(function(m){return m.label}));
       throw new Error("The selected dimension must be one of " + prettyMetricsText)
     }
@@ -459,7 +462,6 @@ function validateConfig(configParams) {
  */
 function getAnalyticsRequestUrl(request) {
   const selectedMetric = dimensionIsMetric(request.configParams.dimension);
-  Logger.log(selectedMetric);
   if (selectedMetric) {
     return ["https://api.bitmovin.com/v1/analytics/metrics/", selectedMetric.value];
   }
