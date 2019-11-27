@@ -8,9 +8,9 @@ the [Bitmovin Analytics](https://bitmovin.com/video-analytics/) API.
 
 ## Try the Community Connector in Data Studio
 
-You can try out the managed deployment of the latest code: [Bitmovin Analytics
-Community
-Connector](https://datastudio.google.com/datasources/create?connectorId=AKfycbzbu3CKMj7bQSuIcwBtpF_xJffWAyJyR9Js2xxAXLK6)
+You can try out the managed deployment of the Bitmovin Analytics
+Community Connector [here](https://datastudio.google.com/datasources/create?connectorId=AKfycbyVSua2zRbnSDsHsE0QuluB_zgxccmmMKpFm3W72q6lw9oAWCAgb-5mjK46TTmrb1lk).
+You can also check out our [sample dashboard](https://datastudio.google.com/reporting/17ALY3_QvARGP275VbkYBkZVy6GVuSsdk) to see the connector in action.
 
 ## Deploy the Community Connector yourself
 
