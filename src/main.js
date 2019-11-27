@@ -141,9 +141,9 @@ function getConfig(request) {
     .setName("Enter your API key");
 
   config
-      .newTextInput()
-      .setId("tenantOrgId")
-      .setName("Enter the tenant organization ID, if applicable");
+    .newTextInput()
+    .setId("tenantOrgId")
+    .setName("Enter the tenant organization ID, if applicable");
 
   config
     .newTextInput()
@@ -501,10 +501,10 @@ function getData(request) {
     muteHttpExceptions: true
   };
 
-  const  tenantId = request.configParams.tenantOrgId;
+  const tenantId = request.configParams.tenantOrgId;
 
-  if (tenantId){
-    options['headers']['x-tenant-org-id'] = tenantId;
+  if (tenantId) {
+    options["headers"]["x-tenant-org-id"] = tenantId;
   }
 
   var rows = [];
