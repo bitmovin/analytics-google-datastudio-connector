@@ -133,8 +133,7 @@ function getMetrics() {
   if (this.metrics == null) {
     this.metrics = [
       {label: "Max Concurrent Viewers", value: "max_concurrentviewers"},
-      {label: "Avg Concurrent Viewers", value: "avg_concurrentviewers"},
-      {label: "Avg Dropped Frames",     value: "avg_dropped_frames"}
+      {label: "Avg Concurrent Viewers", value: "avg_concurrentviewers"}
     ];
   }
   return this.metrics;
