@@ -95,11 +95,8 @@ function getDimensions() {
       "OPERATINGSYSTEM_VERSION_MAJOR",
       "PAGE_LOAD_TIME",
       "PAGE_LOAD_TYPE",
-      "PROG_URL",
-      "max_concurrentviewers",
-      "avg_concurrentviewers",
-      "avg_dropped_frames"
-    ];
+      "PROG_URL"
+    ].concat(getMetrics().map(function(m){return m.value}));
   }
   return this.dimensions;
 }
@@ -224,10 +221,12 @@ function getConfig(request) {
     .setAllowOverride(true);
 
   getDimensions().forEach(function(dimension) {
+    var metric = dimensionIsMetric(dimension);
+    var label = metric != null ? metric.label : dimension;
     dimensionSelect.addOption(
       config
         .newOptionBuilder()
-        .setLabel(dimension)
+        .setLabel(label)
         .setValue(dimension)
     );
   });
