@@ -96,7 +96,7 @@ function getDimensions() {
       "PAGE_LOAD_TIME",
       "PAGE_LOAD_TYPE",
       "PROG_URL"
-    ].concat(getMetrics().map(function(m){return m.value}));
+    ].concat(getMetrics());
   }
   return this.dimensions;
 }
@@ -131,10 +131,7 @@ function getAggregations() {
  */
 function getMetrics() {
   if (this.metrics == null) {
-    this.metrics = [
-      {label: "Max Concurrent Viewers", value: "max_concurrentviewers"},
-      {label: "Avg Concurrent Viewers", value: "avg_concurrentviewers"}
-    ];
+    this.metrics = ["MAX_CONCURRENTVIEWERS", "AVG_CONCURRENTVIEWERS"];
   }
   return this.metrics;
 }
@@ -220,12 +217,10 @@ function getConfig(request) {
     .setAllowOverride(true);
 
   getDimensions().forEach(function(dimension) {
-    var metric = getMetricForDimension(dimension);
-    var label = metric != null ? metric.label : dimension;
     dimensionSelect.addOption(
       config
         .newOptionBuilder()
-        .setLabel(label)
+        .setLabel(dimension)
         .setValue(dimension)
     );
   });
@@ -376,33 +371,23 @@ function responseToRows(requestedFields, response, groupBy) {
 }
 
 /**
- * Return the corresponding metric for the given dimension (e.g. max_concurrentviewers).
- *
- * @param {String} dimension The dimension to check
- * @returns {Object|undefined} The corresponding metric object or undefined.
- */
-function getMetricForDimension(dimension) {
-  var metrics = getMetrics();
-  for(var i = 0; i < metrics.length; i++) {
-    if (metrics[i].value === dimension) {
-      return metrics[i];
-    }
-  }
-  return undefined;
-}
-
-/**
  * Validates config parameters if the selected aggregation and dimension are valid.
  *
  * @param {Object} configParams Config parameters from `request`.
  * @throws An exception if the config is invalid
  */
 function validateAggregationAndDimension(configParams) {
-  if (configParams.aggregation === "metrics") {
-    if(getMetricForDimension(configParams.dimension) == null) {
-      const prettyMetricsText = JSON.stringify(getMetrics().map(function(m){return m.label}));
-      throw new Error("The selected dimension must be one of " + prettyMetricsText)
-    }
+  const isMetric = getMetrics().indexOf(configParams.dimension) !== -1;
+  if (configParams.aggregation === "metrics" && !isMetric) {
+    const prettyMetricsText = JSON.stringify(getMetrics());
+    throw new Error(
+      "If you choose `Metrics` as aggregation, the selected dimension must be one of " +
+        prettyMetricsText
+    );
+  } else if (configParams.aggregation !== "metrics" && isMetric) {
+    throw new Error(
+      "You have to choose `Metrics` as aggregation for this dimension"
+    );
   }
 }
 
@@ -459,11 +444,16 @@ function validateConfig(configParams) {
  * @returns {String} Correct analytics request URL.
  */
 function getAnalyticsRequestUrl(request) {
-  const selectedMetric = getMetricForDimension(request.configParams.dimension);
-  if (selectedMetric) {
-    return ["https://api.bitmovin.com/v1/analytics/metrics/", selectedMetric.value];
+  if (getMetrics().indexOf(request.configParams.dimension) !== -1) {
+    return [
+      "https://api.bitmovin.com/v1/analytics/metrics/",
+      request.configParams.dimension
+    ];
   }
-  return ["https://api.bitmovin.com/v1/analytics/queries/", request.configParams.aggregation];
+  return [
+    "https://api.bitmovin.com/v1/analytics/queries/",
+    request.configParams.aggregation
+  ];
 }
 
 /**
