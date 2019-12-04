@@ -96,9 +96,44 @@ function getDimensions() {
       "PAGE_LOAD_TIME",
       "PAGE_LOAD_TYPE",
       "PROG_URL"
-    ];
+    ].concat(getMetrics());
   }
   return this.dimensions;
+}
+
+/**
+ * Returns the available aggregations the user can use to query API results.
+ *
+ * @returns {Array} Array of the available aggregations.
+ */
+function getAggregations() {
+  if (this.aggregations == null) {
+    this.aggregations = [
+      { label: "Count", value: "count" },
+      { label: "Sum", value: "sum" },
+      { label: "Avg", value: "avg" },
+      { label: "Min", value: "min" },
+      { label: "Max", value: "max" },
+      { label: "Stddev", value: "stddev" },
+      { label: "Percentile", value: "percentile" },
+      { label: "Variance", value: "variance" },
+      { label: "Median", value: "median" },
+      { label: "Metrics", value: "metrics" }
+    ];
+  }
+  return this.aggregations;
+}
+
+/**
+ * Returns the available metrics the user can use to query API results for the metrics dimension.
+ *
+ * @returns {Array} Array of the available metrics.
+ */
+function getMetrics() {
+  if (this.metrics == null) {
+    this.metrics = ["MAX_CONCURRENTVIEWERS", "AVG_CONCURRENTVIEWERS"];
+  }
+  return this.metrics;
 }
 
 /**
@@ -150,66 +185,21 @@ function getConfig(request) {
     .setId("licenseKey")
     .setName("Enter your license key");
 
-  config
+  const aggregationSelect = config
     .newSelectSingle()
     .setId("aggregation")
     .setName("Aggregation")
     .setHelpText("Select a aggregation")
-    .setAllowOverride(true)
-    .addOption(
+    .setAllowOverride(true);
+
+  getAggregations().forEach(function(aggregation) {
+    aggregationSelect.addOption(
       config
         .newOptionBuilder()
-        .setLabel("Count")
-        .setValue("count")
-    )
-    .addOption(
-      config
-        .newOptionBuilder()
-        .setLabel("Sum")
-        .setValue("sum")
-    )
-    .addOption(
-      config
-        .newOptionBuilder()
-        .setLabel("Avg")
-        .setValue("avg")
-    )
-    .addOption(
-      config
-        .newOptionBuilder()
-        .setLabel("Min")
-        .setValue("min")
-    )
-    .addOption(
-      config
-        .newOptionBuilder()
-        .setLabel("Max")
-        .setValue("max")
-    )
-    .addOption(
-      config
-        .newOptionBuilder()
-        .setLabel("Stddev")
-        .setValue("stddev")
-    )
-    .addOption(
-      config
-        .newOptionBuilder()
-        .setLabel("Percentile")
-        .setValue("percentile")
-    )
-    .addOption(
-      config
-        .newOptionBuilder()
-        .setLabel("Variance")
-        .setValue("variance")
-    )
-    .addOption(
-      config
-        .newOptionBuilder()
-        .setLabel("Median")
-        .setValue("median")
+        .setLabel(aggregation.label)
+        .setValue(aggregation.value)
     );
+  });
 
   config
     .newTextInput()
@@ -381,6 +371,27 @@ function responseToRows(requestedFields, response, groupBy) {
 }
 
 /**
+ * Validates config parameters if the selected aggregation and dimension are valid.
+ *
+ * @param {Object} configParams Config parameters from `request`.
+ * @throws An exception if the config is invalid
+ */
+function validateAggregationAndDimension(configParams) {
+  const isMetric = getMetrics().indexOf(configParams.dimension) !== -1;
+  if (configParams.aggregation === "metrics" && !isMetric) {
+    const prettyMetricsText = JSON.stringify(getMetrics());
+    throw new Error(
+      "If you choose `Metrics` as aggregation, the selected dimension must be one of " +
+        prettyMetricsText
+    );
+  } else if (configParams.aggregation !== "metrics" && isMetric) {
+    throw new Error(
+      "You have to choose `Metrics` as aggregation for this dimension"
+    );
+  }
+}
+
+/**
  * Validates config parameters and displays an error if the config is invalid.
  *
  * @param {Object} configParams Config parameters from `request`.
@@ -417,12 +428,32 @@ function validateConfig(configParams) {
         );
       }
     }
+    validateAggregationAndDimension(configParams);
   } catch (e) {
     DataStudioApp.createCommunityConnector()
       .newUserError()
       .setText(e.message)
       .throwException();
   }
+}
+
+/**
+ * Returns the analytics request URL based on the request configuration.
+ *
+ * @param {Object} request Data request parameters.
+ * @returns {String} Correct analytics request URL.
+ */
+function getAnalyticsRequestUrl(request) {
+  if (getMetrics().indexOf(request.configParams.dimension) !== -1) {
+    return [
+      "https://api.bitmovin.com/v1/analytics/metrics/",
+      request.configParams.dimension
+    ];
+  }
+  return [
+    "https://api.bitmovin.com/v1/analytics/queries/",
+    request.configParams.aggregation
+  ];
 }
 
 /**
@@ -439,10 +470,7 @@ function getData(request) {
   });
   var requestedFields = getFields(request).forIds(requestedFieldIds);
 
-  var url = [
-    "https://api.bitmovin.com/v1/analytics/queries/",
-    request.configParams.aggregation
-  ];
+  var url = getAnalyticsRequestUrl(request);
 
   var data = {
     orderBy: [],
