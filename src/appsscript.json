@@ -12,5 +12,8 @@
     "feeType": ["FREE"],
     "sources": ["BITMOVIN_ANALYTICS"]
   },
-  "urlFetchWhitelist": ["https://api.bitmovin.com/v1/analytics/queries/"]
+  "urlFetchWhitelist": [
+    "https://api.bitmovin.com/v1/analytics/queries/",
+    "https://api.bitmovin.com/v1/analytics/metrics/"
+  ]
 }
