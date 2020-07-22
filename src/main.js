@@ -319,8 +319,8 @@ function getConfig(request) {
   const orderBySelect = config
     .newSelectSingle()
     .setId("orderBy")
-    .setName("Order by")
-    .setHelpText("Select ordering of API results")
+    .setName("Order by dimension")
+    .setHelpText("Select ordering dimension of API results")
     .setAllowOverride(true);
 
   getOrderBys().forEach(function(orderBy) {
