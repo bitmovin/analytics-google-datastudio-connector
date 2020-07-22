@@ -538,6 +538,17 @@ function validateAggregationAndDimension(configParams) {
   }
 }
 
+function validateOrderBy(configParams) {
+  if (
+    (configParams.orderBy != null && configParams.orderByDirection == null) ||
+    (configParams.orderBy == null && configParams.orderByDirection != null)
+  ) {
+    throw new Error(
+      "The ordering dimension and ordering direction must be set."
+    );
+  }
+}
+
 /**
  * Validates config parameters and displays an error if the config is invalid.
  *
@@ -576,6 +587,7 @@ function validateConfig(configParams) {
       }
     }
     validateAggregationAndDimension(configParams);
+    validateOrderBy(configParams);
   } catch (e) {
     DataStudioApp.createCommunityConnector()
       .newUserError()
@@ -610,7 +622,8 @@ function getAnalyticsRequestUrl(request) {
  * @returns {Object} Contains the schema and data for the given request.
  */
 function getData(request) {
-  validateConfig(request.configParams);
+  var configParams = request.configParams;
+  validateConfig(configParams);
 
   var requestedFieldIds = request.fields.map(function(field) {
     return field.name;
@@ -622,26 +635,33 @@ function getData(request) {
   var data = {
     orderBy: [],
     groupBy: [],
-    dimension: request.configParams.dimension,
-    licenseKey: request.configParams.licenseKey,
+    dimension: configParams.dimension,
+    licenseKey: configParams.licenseKey,
     start: request.dateRange.startDate + "T00:00:00.000Z",
     end: request.dateRange.endDate + "T23:59:59.000Z"
   };
 
-  if (request.configParams.filter) {
-    data.filters = eval("(" + request.configParams.filter + ")");
+  if (configParams.filter) {
+    data.filters = eval("(" + configParams.filter + ")");
   }
 
-  if (request.configParams.limit) {
-    data.limit = request.configParams.limit;
+  if (configParams.limit) {
+    data.limit = configParams.limit;
   }
 
-  if (request.configParams.offset) {
-    data.offset = request.configParams.offset;
+  if (configParams.offset) {
+    data.offset = configParams.offset;
   }
 
-  if (request.configParams.aggregation === "percentile") {
-    data.percentile = request.configParams.percentile;
+  if (configParams.aggregation === "percentile") {
+    data.percentile = configParams.percentile;
+  }
+
+  if (configParams.orderBy != null && configParams.orderByDirection != null) {
+    data.orderBy.push({
+      name: configParams.orderBy,
+      order: configParams.orderByDirection
+    });
   }
 
   const intervalRanks = ["HOUR", "DAY", "MONTH"];
@@ -670,7 +690,7 @@ function getData(request) {
     method: "post",
     contentType: "application/json",
     headers: {
-      "x-api-key": request.configParams.apiKey
+      "x-api-key": configParams.apiKey
     },
     payload: JSON.stringify(data),
     muteHttpExceptions: true
