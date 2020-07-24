@@ -229,7 +229,12 @@ function getConfig(request) {
     .newTextInput()
     .setId("filter")
     .setName("Filter")
-    .setPlaceholder('{name:"STARTUPTIME","operator":"GT","value":0}')
+    .setPlaceholder(
+      '{"name":"PLAYER_STARTUPTIME","operator":"GT","value":0}, {"name":"VIDEO_STARTUPTIME","operator":"GT","value":0}'
+    )
+    .setHelpText("Filter API results")
+    .setAllowOverride(true);
+
   config
     .newTextInput()
     .setId("orderBy")
