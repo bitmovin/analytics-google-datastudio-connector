@@ -189,7 +189,7 @@ function getConfig(request) {
     .newSelectSingle()
     .setId("aggregation")
     .setName("Aggregation")
-    .setHelpText("Select a aggregation")
+    .setHelpText("Select an aggregation")
     .setAllowOverride(true);
 
   getAggregations().forEach(function(aggregation) {
@@ -229,7 +229,20 @@ function getConfig(request) {
     .newTextInput()
     .setId("filter")
     .setName("Filter")
-    .setPlaceholder('{name:"STARTUPTIME","operator":"GT","value":0}')
+    .setPlaceholder(
+      '{"name":"STARTUPTIME","operator":"GT","value":0}, {"name":"PLAYED","operator":"GT","value":0}'
+    )
+    .setHelpText("Filter API results")
+    .setAllowOverride(true);
+
+  config
+    .newTextInput()
+    .setId("orderBy")
+    .setName("Order By")
+    .setPlaceholder(
+      '{"name":"COUNTRY","order":"DESC"}, {"name":"STARTUPTIME","order":"ASC"}'
+    )
+    .setHelpText("Set ordering of API results by dimension and direction")
     .setAllowOverride(true);
 
   config
@@ -463,7 +476,8 @@ function getAnalyticsRequestUrl(request) {
  * @returns {Object} Contains the schema and data for the given request.
  */
 function getData(request) {
-  validateConfig(request.configParams);
+  var configParams = request.configParams;
+  validateConfig(configParams);
 
   var requestedFieldIds = request.fields.map(function(field) {
     return field.name;
@@ -475,26 +489,30 @@ function getData(request) {
   var data = {
     orderBy: [],
     groupBy: [],
-    dimension: request.configParams.dimension,
-    licenseKey: request.configParams.licenseKey,
+    dimension: configParams.dimension,
+    licenseKey: configParams.licenseKey,
     start: request.dateRange.startDate + "T00:00:00.000Z",
     end: request.dateRange.endDate + "T23:59:59.000Z"
   };
 
-  if (request.configParams.filter) {
-    data.filters = eval("(" + request.configParams.filter + ")");
+  if (configParams.filter) {
+    data.filters = JSON.parse("[" + configParams.filter + "]");
   }
 
-  if (request.configParams.limit) {
-    data.limit = request.configParams.limit;
+  if (configParams.orderBy) {
+    data.orderBy = JSON.parse("[" + configParams.orderBy + "]");
   }
 
-  if (request.configParams.offset) {
-    data.offset = request.configParams.offset;
+  if (configParams.limit) {
+    data.limit = configParams.limit;
   }
 
-  if (request.configParams.aggregation === "percentile") {
-    data.percentile = request.configParams.percentile;
+  if (configParams.offset) {
+    data.offset = configParams.offset;
+  }
+
+  if (configParams.aggregation === "percentile") {
+    data.percentile = configParams.percentile;
   }
 
   const intervalRanks = ["HOUR", "DAY", "MONTH"];
@@ -523,7 +541,7 @@ function getData(request) {
     method: "post",
     contentType: "application/json",
     headers: {
-      "x-api-key": request.configParams.apiKey
+      "x-api-key": configParams.apiKey
     },
     payload: JSON.stringify(data),
     muteHttpExceptions: true
