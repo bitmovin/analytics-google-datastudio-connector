@@ -230,7 +230,7 @@ function getConfig(request) {
     .setId("filter")
     .setName("Filter")
     .setPlaceholder(
-      '{"name":"PLAYER_STARTUPTIME","operator":"GT","value":0}, {"name":"VIDEO_STARTUPTIME","operator":"GT","value":0}'
+      '{"name":"STARTUPTIME","operator":"GT","value":0}, {"name":"PLAYED","operator":"GT","value":0}'
     )
     .setHelpText("Filter API results")
     .setAllowOverride(true);
@@ -240,7 +240,7 @@ function getConfig(request) {
     .setId("orderBy")
     .setName("Order By")
     .setPlaceholder(
-      '{name:"COUNTRY","order":"DESC"}, {name:"STARTUPTIME","order":"ASC"}'
+      '{"name":"COUNTRY","order":"DESC"}, {"name":"STARTUPTIME","order":"ASC"}'
     )
     .setHelpText("Set ordering of API results by dimension and direction")
     .setAllowOverride(true);
