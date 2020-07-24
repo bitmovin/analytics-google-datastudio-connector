@@ -102,120 +102,6 @@ function getDimensions() {
 }
 
 /**
- * Returns the available orderBys the user can use to order the API results.
- *
- * @returns {Array} Array of the available orderBys.
- */
-function getOrderBys() {
-  if (this.orderBys == null) {
-    this.orderBys = [
-      "AD",
-      "ANALYTICS_VERSION",
-      "ASN",
-      "AUDIO_BITRATE",
-      "AUDIO_CODEC",
-      "AUDIO_LANGUAGE",
-      "BROWSER_VERSION_MAJOR",
-      "BROWSER_VERSION_MINOR",
-      "BROWSER",
-      "BUFFERED",
-      "CDN_PROVIDER",
-      "CITY",
-      "CLIENT_TIME",
-      "COMPLETION_RATE",
-      "CONTEXT",
-      "COUNTRY",
-      "CUSTOM_DATA_1",
-      "CUSTOM_DATA_2",
-      "CUSTOM_DATA_3",
-      "CUSTOM_DATA_4",
-      "CUSTOM_DATA_5",
-      "CUSTOM_DATA_6",
-      "CUSTOM_DATA_7",
-      "CUSTOM_USER_ID",
-      "DAY",
-      "DEVICE_CLASS",
-      "DEVICE_TYPE",
-      "DOMAIN",
-      "DRM_LOAD_TIME",
-      "DRM_TYPE",
-      "DROPPED_FRAMES",
-      "DURATION",
-      "ENGAGEMENT_RATE",
-      "ERROR_CODE",
-      "EXPERIMENT_NAME",
-      "FUNCTION",
-      "HOUR",
-      "IMPRESSION_ID",
-      "IP_ADDRESS",
-      "IS_CASTING",
-      "IS_LIVE",
-      "ISP",
-      "LANGUAGE",
-      "MINUTE",
-      "MONTH",
-      "OPERATINGSYSTEM_VERSION_MAJOR",
-      "OPERATINGSYSTEM_VERSION_MINOR",
-      "OPERATINGSYSTEM",
-      "PAGE_LOAD_TIME",
-      "PAGE_LOAD_TYPE",
-      "PATH",
-      "PAUSED",
-      "PLATFORM",
-      "PLAYED",
-      "PLAYER_STARTUPTIME",
-      "PLAYER_TECH",
-      "PLAYER_VERSION",
-      "PLAYER",
-      "REGION",
-      "SCALE_FACTOR",
-      "SCREEN_HEIGHT",
-      "SCREEN_ORIENTATION",
-      "SCREEN_WIDTH",
-      "SECOND",
-      "SEEKED",
-      "SEQUENCE_NUMBER",
-      "SIZE",
-      "STARTUPTIME",
-      "STREAM_FORMAT",
-      "SUBTITLE_ENABLED",
-      "SUBTITLE_LANGUAGE",
-      "TIME",
-      "USER_ID",
-      "VIDEO_BITRATE",
-      "VIDEO_CODEC",
-      "VIDEO_DURATION",
-      "VIDEO_ID",
-      "VIDEO_PLAYBACK_HEIGHT",
-      "VIDEO_PLAYBACK_WIDTH",
-      "VIDEO_STARTUPTIME",
-      "VIDEO_TITLE",
-      "VIDEO_WINDOW_HEIGHT",
-      "VIDEO_WINDOW_WIDTH",
-      "VIDEOSTART_FAILED_REASON",
-      "VIDEOTIME_END",
-      "VIDEOTIME_START"
-    ];
-  }
-  return this.orderBys;
-}
-
-/**
- * Returns the available order by directions the user can use to order API results.
- *
- * @returns {Array} Array of the available order by directions.
- */
-function getOrderByDirections() {
-  if (this.orderByDirections == null) {
-    this.orderByDirections = [
-      { label: "Ascending", value: "ASC" },
-      { label: "Descending", value: "DESC" }
-    ];
-  }
-  return this.orderByDirections;
-}
-
-/**
  * Returns the available aggregations the user can use to query API results.
  *
  * @returns {Array} Array of the available aggregations.
@@ -315,39 +201,6 @@ function getConfig(request) {
     );
   });
 
-  // OrderBy
-  const orderBySelect = config
-    .newSelectSingle()
-    .setId("orderBy")
-    .setName("Order by dimension")
-    .setHelpText("Select ordering dimension of API results")
-    .setAllowOverride(true);
-
-  getOrderBys().forEach(function(orderBy) {
-    orderBySelect.addOption(
-      config
-        .newOptionBuilder()
-        .setLabel(orderBy)
-        .setValue(orderBy)
-    );
-  });
-
-  const orderByDirectionSelect = config
-    .newSelectSingle()
-    .setId("orderByDirection")
-    .setName("Order by direction")
-    .setHelpText("Select ordering direction of API results")
-    .setAllowOverride(true);
-
-  getOrderByDirections().forEach(function(dir) {
-    orderByDirectionSelect.addOption(
-      config
-        .newOptionBuilder()
-        .setLabel(dir.label)
-        .setValue(dir.value)
-    );
-  });
-
   config
     .newTextInput()
     .setId("percentile")
@@ -377,6 +230,14 @@ function getConfig(request) {
     .setId("filter")
     .setName("Filter")
     .setPlaceholder('{name:"STARTUPTIME","operator":"GT","value":0}')
+  config
+    .newTextInput()
+    .setId("orderBy")
+    .setName("Order By")
+    .setPlaceholder(
+      '{name:"COUNTRY","order":"DESC"}, {name:"STARTUPTIME","order":"ASC"}'
+    )
+    .setHelpText("Set ordering of API results by dimension and direction")
     .setAllowOverride(true);
 
   config
@@ -538,17 +399,6 @@ function validateAggregationAndDimension(configParams) {
   }
 }
 
-function validateOrderBy(configParams) {
-  if (
-    (configParams.orderBy != null && configParams.orderByDirection == null) ||
-    (configParams.orderBy == null && configParams.orderByDirection != null)
-  ) {
-    throw new Error(
-      "The ordering dimension and ordering direction must be set."
-    );
-  }
-}
-
 /**
  * Validates config parameters and displays an error if the config is invalid.
  *
@@ -587,7 +437,6 @@ function validateConfig(configParams) {
       }
     }
     validateAggregationAndDimension(configParams);
-    validateOrderBy(configParams);
   } catch (e) {
     DataStudioApp.createCommunityConnector()
       .newUserError()
@@ -643,6 +492,8 @@ function getData(request) {
 
   if (configParams.filter) {
     data.filters = eval("(" + configParams.filter + ")");
+  if (configParams.orderBy) {
+    data.orderBy = JSON.parse("[" + configParams.orderBy + "]");
   }
 
   if (configParams.limit) {
@@ -655,13 +506,6 @@ function getData(request) {
 
   if (configParams.aggregation === "percentile") {
     data.percentile = configParams.percentile;
-  }
-
-  if (configParams.orderBy != null && configParams.orderByDirection != null) {
-    data.orderBy.push({
-      name: configParams.orderBy,
-      order: configParams.orderByDirection
-    });
   }
 
   const intervalRanks = ["HOUR", "DAY", "MONTH"];
