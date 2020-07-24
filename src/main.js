@@ -491,7 +491,9 @@ function getData(request) {
   };
 
   if (configParams.filter) {
-    data.filters = eval("(" + configParams.filter + ")");
+    data.filters = JSON.parse("[" + configParams.filter + "]");
+  }
+
   if (configParams.orderBy) {
     data.orderBy = JSON.parse("[" + configParams.orderBy + "]");
   }
