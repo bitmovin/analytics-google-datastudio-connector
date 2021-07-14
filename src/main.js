@@ -432,7 +432,7 @@ function validateConfig(configParams) {
     if (!configParams.licenseKey) {
       throw new Error("License key is required.");
     }
-    if (isNaN(convertTimezoneToMinutesOffset(configParams.timezone))) {
+    if (convertTimezoneToMinutesOffset(configParams.timezone) == null) {
       throw new Error("Timezone format is invalid")
     }
     if (!configParams.apiKey) {
