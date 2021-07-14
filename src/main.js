@@ -457,6 +457,32 @@ function validateConfig(configParams) {
 }
 
 /**
+ * converts a timezone string into the minute repräsentation of it
+ * @param {string} timezone 
+ * @returns {number | null} timezone in minutes or null if invalid
+ */
+ function convertTimezoneToMinutesOffset(timezone) {
+  if (timezone == null || timezone.length == 0) {
+    return 0;
+  }
+  var tz = timezone;
+  if (tz.indexOf("+") != 0 && tz.indexOf("-") != 0) {
+    tz = "+" + tz;
+  }
+  var regex = /([+-])([0-9]{2}):([0-9]{2})/.exec(tz);
+  if (regex == null) {
+    return null;
+  }
+  var hours = parseInt(regex[2].replace(/([0])(?=.)/, ''));
+  var min = parseInt(regex[3].replace(/([0])(?=.)/, ''));
+  var timezoneMinutes = hours * 60 + min;
+  if (regex[1] != "+") {
+    timezoneMinutes *= -1;
+  }
+  return timezoneMinutes;
+}
+
+/**
  * Returns the analytics request URL based on the request configuration.
  *
  * @param {Object} request Data request parameters.
