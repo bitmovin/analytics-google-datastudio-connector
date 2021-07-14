@@ -184,6 +184,12 @@ function getConfig(request) {
     .newTextInput()
     .setId("licenseKey")
     .setName("Enter your license key");
+  
+  config
+    .newTextInput()
+    .setId("timezone")
+    .setPlaceholder("+02:00")
+    .setName("Enter your Timezone");
 
   const aggregationSelect = config
     .newSelectSingle()
