@@ -341,9 +341,14 @@ function getSchema(request) {
  * @param {FieldType} type Format of the string that will be returned.
  * @returns {String} A date string according to the type provided.
  */
-function formatMillis(millis, type) {
+function formatMillis(millis, type, timezone) {
   var types = DataStudioApp.createCommunityConnector().FieldType;
-  var date = new Date(millis).toISOString();
+  var timezoneMinutes = convertTimezoneToMinutesOffset(timezone)
+  var millisOffset = millis
+  if (timezoneMinutes != null) {
+    millisOffset += (timezoneMinutes * 60 * 1000)
+  }
+  var date = new Date(millisOffset).toISOString();
   var result = date.slice(0, 4) + date.slice(5, 7);
   if (type === types.YEAR_MONTH) return result;
   result = result.concat(date.slice(8, 10));
@@ -360,7 +365,7 @@ function formatMillis(millis, type) {
  * @param {Array} groupBy An array of dimensions that have been used to group the data.
  * @returns {Array} Array containing rows of data according to the requested fields.
  */
-function responseToRows(requestedFields, response, groupBy) {
+function responseToRows(requestedFields, response, groupBy, timezone) {
   const fields = requestedFields.asArray();
   var groupByStartIndex = 0;
   fields.forEach(function(field) {
@@ -376,7 +381,7 @@ function responseToRows(requestedFields, response, groupBy) {
       if (id === "dimension") {
         return result.push(row[row.length - 1]);
       } else if (id.indexOf("interval_") === 0) {
-        return result.push(formatMillis(row[0], field.getType()));
+        return result.push(formatMillis(row[0], field.getType(), timezone));
       } else if (id.indexOf("groupBy_") === 0) {
         var index =
           groupBy.indexOf(id.replace("groupBy_", "")) + groupByStartIndex;
@@ -426,6 +431,9 @@ function validateConfig(configParams) {
     }
     if (!configParams.licenseKey) {
       throw new Error("License key is required.");
+    }
+    if (isNaN(convertTimezoneToMinutesOffset(configParams.timezone))) {
+      throw new Error("Timezone format is invalid")
     }
     if (!configParams.apiKey) {
       throw new Error("API key is required.");
@@ -600,7 +608,8 @@ function getData(request) {
         rows = responseToRows(
           requestedFields,
           parsedJson.data.result.rows,
-          data.groupBy
+          data.groupBy,
+          configParams.timezone
         );
       }
     } else {
