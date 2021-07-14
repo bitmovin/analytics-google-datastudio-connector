@@ -477,7 +477,7 @@ function validateConfig(configParams) {
   if (tz.indexOf("+") != 0 && tz.indexOf("-") != 0) {
     tz = "+" + tz;
   }
-  var regex = /([+-])([0-9]{2}):([0-9]{2})/.exec(tz);
+  var regex = /([+-])([0-9]{2}):([0-9]{2})\b/.exec(tz);
   if (regex == null) {
     return null;
   }
