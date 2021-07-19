@@ -465,7 +465,7 @@ function validateConfig(configParams) {
 }
 
 /**
- * converts a timezone string into the minute repräsentation of it
+ * converts a timezone string into the minute representation of it
  * @param {string} timezone 
  * @returns {number | null} timezone in minutes or null if invalid
  */
