@@ -44,6 +44,24 @@ function getDimensions() {
       "CUSTOM_DATA_5",
       "CUSTOM_DATA_6",
       "CUSTOM_DATA_7",
+      "CUSTOM_DATA_8",
+      "CUSTOM_DATA_9",
+      "CUSTOM_DATA_10",
+      "CUSTOM_DATA_11",
+      "CUSTOM_DATA_12",
+      "CUSTOM_DATA_13",
+      "CUSTOM_DATA_14",
+      "CUSTOM_DATA_15",
+      "CUSTOM_DATA_16",
+      "CUSTOM_DATA_17",
+      "CUSTOM_DATA_18",
+      "CUSTOM_DATA_19",
+      "CUSTOM_DATA_20",
+      "CUSTOM_DATA_21",
+      "CUSTOM_DATA_22",
+      "CUSTOM_DATA_23",
+      "CUSTOM_DATA_24",
+      "CUSTOM_DATA_25",
       "CUSTOM_USER_ID",
       "DEVICE_TYPE",
       "DOMAIN",
@@ -55,14 +73,18 @@ function getDimensions() {
       "EXPERIMENT_NAME",
       "IMPRESSION_ID",
       "IP_ADDRESS",
+      "ISP",
       "IS_CASTING",
       "IS_LIVE",
       "IS_MUTED",
-      "ISP",
       "LANGUAGE",
       "LICENSE_KEY",
-      "MPD_URL",
       "M3U8_URL",
+      "MPD_URL",
+      "OPERATINGSYSTEM",
+      "OPERATINGSYSTEM_VERSION_MAJOR",
+      "PAGE_LOAD_TIME",
+      "PAGE_LOAD_TYPE",
       "PATH",
       "PAUSED",
       "PLAYED",
@@ -71,6 +93,7 @@ function getDimensions() {
       "PLAYER_STARTUPTIME",
       "PLAYER_TECH",
       "PLAYER_VERSION",
+      "PROG_URL",
       "REGION",
       "SCALE_FACTOR",
       "SCREEN_HEIGHT",
@@ -80,6 +103,8 @@ function getDimensions() {
       "STARTUPTIME",
       "STREAM_FORMAT",
       "USER_ID",
+      "VIDEOTIME_END",
+      "VIDEOTIME_START",
       "VIDEO_BITRATE",
       "VIDEO_DURATION",
       "VIDEO_ID",
@@ -88,14 +113,7 @@ function getDimensions() {
       "VIDEO_STARTUPTIME",
       "VIDEO_TITLE",
       "VIDEO_WINDOW_HEIGHT",
-      "VIDEO_WINDOW_WIDTH",
-      "VIDEOTIME_END",
-      "VIDEOTIME_START",
-      "OPERATINGSYSTEM",
-      "OPERATINGSYSTEM_VERSION_MAJOR",
-      "PAGE_LOAD_TIME",
-      "PAGE_LOAD_TYPE",
-      "PROG_URL"
+      "VIDEO_WINDOW_WIDTH"
     ].concat(getMetrics());
   }
   return this.dimensions;
@@ -184,6 +202,12 @@ function getConfig(request) {
     .newTextInput()
     .setId("licenseKey")
     .setName("Enter your license key");
+  
+  config
+    .newTextInput()
+    .setId("timezone")
+    .setPlaceholder("+02:00")
+    .setName("Enter your Timezone");
 
   const aggregationSelect = config
     .newSelectSingle()
@@ -335,9 +359,14 @@ function getSchema(request) {
  * @param {FieldType} type Format of the string that will be returned.
  * @returns {String} A date string according to the type provided.
  */
-function formatMillis(millis, type) {
+function formatMillis(millis, type, timezone) {
   var types = DataStudioApp.createCommunityConnector().FieldType;
-  var date = new Date(millis).toISOString();
+  var timezoneMinutes = convertTimezoneToMinutesOffset(timezone)
+  var millisOffset = millis
+  if (timezoneMinutes != null) {
+    millisOffset += (timezoneMinutes * 60 * 1000)
+  }
+  var date = new Date(millisOffset).toISOString();
   var result = date.slice(0, 4) + date.slice(5, 7);
   if (type === types.YEAR_MONTH) return result;
   result = result.concat(date.slice(8, 10));
@@ -354,7 +383,7 @@ function formatMillis(millis, type) {
  * @param {Array} groupBy An array of dimensions that have been used to group the data.
  * @returns {Array} Array containing rows of data according to the requested fields.
  */
-function responseToRows(requestedFields, response, groupBy) {
+function responseToRows(requestedFields, response, groupBy, timezone) {
   const fields = requestedFields.asArray();
   var groupByStartIndex = 0;
   fields.forEach(function(field) {
@@ -370,7 +399,7 @@ function responseToRows(requestedFields, response, groupBy) {
       if (id === "dimension") {
         return result.push(row[row.length - 1]);
       } else if (id.indexOf("interval_") === 0) {
-        return result.push(formatMillis(row[0], field.getType()));
+        return result.push(formatMillis(row[0], field.getType(), timezone));
       } else if (id.indexOf("groupBy_") === 0) {
         var index =
           groupBy.indexOf(id.replace("groupBy_", "")) + groupByStartIndex;
@@ -421,6 +450,9 @@ function validateConfig(configParams) {
     if (!configParams.licenseKey) {
       throw new Error("License key is required.");
     }
+    if (convertTimezoneToMinutesOffset(configParams.timezone) == null) {
+      throw new Error("Timezone format is invalid")
+    }
     if (!configParams.apiKey) {
       throw new Error("API key is required.");
     }
@@ -448,6 +480,32 @@ function validateConfig(configParams) {
       .setText(e.message)
       .throwException();
   }
+}
+
+/**
+ * converts a timezone string into the minute representation of it
+ * @param {string} timezone 
+ * @returns {number | null} timezone in minutes or null if invalid
+ */
+ function convertTimezoneToMinutesOffset(timezone) {
+  if (timezone == null || timezone.length == 0) {
+    return 0;
+  }
+  var tz = timezone;
+  if (tz.indexOf("+") != 0 && tz.indexOf("-") != 0) {
+    tz = "+" + tz;
+  }
+  var regex = /([+-])([0-9]{2}):([0-9]{2})\b/.exec(tz);
+  if (regex == null) {
+    return null;
+  }
+  var hours = parseInt(regex[2].replace(/([0])(?=.)/, ''));
+  var min = parseInt(regex[3].replace(/([0])(?=.)/, ''));
+  var timezoneMinutes = hours * 60 + min;
+  if (regex[1] != "+") {
+    timezoneMinutes *= -1;
+  }
+  return timezoneMinutes;
 }
 
 /**
@@ -568,7 +626,8 @@ function getData(request) {
         rows = responseToRows(
           requestedFields,
           parsedJson.data.result.rows,
-          data.groupBy
+          data.groupBy,
+          configParams.timezone
         );
       }
     } else {
