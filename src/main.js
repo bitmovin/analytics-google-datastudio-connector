@@ -68,6 +68,7 @@ function getDimensions() {
       "CUSTOM_DATA_29",
       "CUSTOM_DATA_30",
       "CUSTOM_USER_ID",
+      "DEVICE_CLASS",
       "DEVICE_TYPE",
       "DOMAIN",
       "DRM_LOAD_TIME",
@@ -207,7 +208,7 @@ function getConfig(request) {
     .newTextInput()
     .setId("licenseKey")
     .setName("Enter your license key");
-  
+
   config
     .newTextInput()
     .setId("timezone")
@@ -489,7 +490,7 @@ function validateConfig(configParams) {
 
 /**
  * converts a timezone string into the minute representation of it
- * @param {string} timezone 
+ * @param {string} timezone
  * @returns {number | null} timezone in minutes or null if invalid
  */
  function convertTimezoneToMinutesOffset(timezone) {
